@@ -19,10 +19,57 @@ ALIGNMENT_SCALE = {
 }
 
 INFLUENCE_SCALE = {
-    0: "No influence (position ignored or overruled)",
-    1: "Limited influence (acknowledged but didn't shape outcome)",
-    2: "Moderate influence (arguments engaged with, some impact)",
-    3: "Strong influence (clearly shaped the outcome)"
+    0: "No influence",
+    1: "Limited influence",
+    2: "Moderate influence",
+    3: "Strong influence"
+}
+
+INFLUENCE_SCALE_DETAILED = {
+    0: {
+        "label": "No influence",
+        "criteria": "ONE OR MORE of:",
+        "items": [
+            "Did not mention or discuss the policy decision at all",
+            "Explicitly opposed or dissented from the final decision",
+            "Made statements that contradicted the final decision",
+            "Their position was directly counter to what was ultimately decided"
+        ]
+    },
+    1: {
+        "label": "Limited influence",
+        "criteria": "ALL of:",
+        "items": [
+            "Mentioned the policy decision or related topic",
+            "Expressed general agreement or support",
+            "Did NOT provide substantive arguments or analysis",
+            "Did NOT propose specific policy parameters or language",
+            "Other speakers made more detailed arguments for the same position"
+        ]
+    },
+    2: {
+        "label": "Moderate influence",
+        "criteria": "AT LEAST TWO of:",
+        "items": [
+            "Provided explicit arguments, data, or reasoning to support the decision",
+            "Discussed specific parameters or implementation details",
+            "Defended the policy against alternative positions",
+            "Made recommendations reflected in the final decision",
+            "Raised concerns that were addressed in the final decision"
+        ]
+    },
+    3: {
+        "label": "Strong influence",
+        "criteria": "AT LEAST TWO of:",
+        "items": [
+            "Explicitly proposed the specific policy decision that was adopted",
+            "Provided unique arguments central to the committee's rationale",
+            "Counterarguments shaped the final decision",
+            "Suggestions appear verbatim in the final decision",
+            "Was directly referenced by other speakers as shaping their views",
+            "Decision would likely have been substantially different without their input"
+        ]
+    }
 }
 
 ACCURACY_OPTIONS = ["yes", "partially", "no"]

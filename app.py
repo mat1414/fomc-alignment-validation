@@ -14,6 +14,7 @@ from config import (
     TARGET_MEETINGS,
     ALIGNMENT_SCALE,
     INFLUENCE_SCALE,
+    INFLUENCE_SCALE_DETAILED,
     ACCURACY_OPTIONS,
     CONFIDENCE_LEVELS,
     DATA_PATHS
@@ -442,7 +443,8 @@ def render_assessment_form(
     influence_data: Dict,
     speakers: List[str],
     decisions: pd.DataFrame,
-    data: Dict
+    data: Dict,
+    ymd: str
 ):
     """Render the alignment and influence assessment form."""
     validation = get_or_create_validation(
@@ -566,8 +568,10 @@ def render_assessment_form(
         st.markdown("2. Your influence score:")
 
         with st.expander("Scale reference", expanded=False):
-            for score, desc in INFLUENCE_SCALE.items():
-                st.caption(f"{score}: {desc}")
+            for score, details in INFLUENCE_SCALE_DETAILED.items():
+                st.markdown(f"**{score}: {details['label']}** ({details['criteria']})")
+                for item in details['items']:
+                    st.caption(f"  • {item}")
 
         human_inf_score = st.radio(
             "Your influence score",
@@ -579,6 +583,9 @@ def render_assessment_form(
             label_visibility="collapsed"
         )
         inf['human_score'] = human_inf_score
+
+    # Transcript section (placed here for easy reference while assessing)
+    render_transcript_section(ymd, speaker, data)
 
     # Notes and confidence (full width)
     st.markdown("---")
@@ -762,7 +769,7 @@ def main():
     alignment_data = get_alignment(ymd, decision['description'], current_speaker, data['alignments'])
     influence_data = get_influence(ymd, decision['description'], current_speaker, data['influence'])
 
-    # Assessment form
+    # Assessment form (includes transcript section)
     render_assessment_form(
         current_speaker,
         decision,
@@ -771,11 +778,9 @@ def main():
         influence_data,
         speakers,
         decisions,
-        data
+        data,
+        ymd
     )
-
-    # Transcript viewer
-    render_transcript_section(ymd, current_speaker, data)
 
 
 if __name__ == "__main__":
