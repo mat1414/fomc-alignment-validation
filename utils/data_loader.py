@@ -40,16 +40,18 @@ def get_meeting_decisions(ymd: str, decisions_df: pd.DataFrame) -> pd.DataFrame:
 
 def get_decision_speakers(ymd: str, description: str, alignments_df: pd.DataFrame) -> List[str]:
     """Get all speakers assessed for a specific decision."""
-    mask = (alignments_df['ymd'] == ymd) & (alignments_df['description_x'] == description)
+    # Use description_y to match with decisions table description
+    mask = (alignments_df['ymd'] == ymd) & (alignments_df['description_y'] == description)
     speakers = alignments_df[mask]['stablespeaker'].unique().tolist()
     return sorted(speakers)  # alphabetical order
 
 
 def get_alignment(ymd: str, description: str, speaker: str, alignments_df: pd.DataFrame) -> Optional[Dict]:
     """Get Claude's alignment assessment for a speaker-decision pair."""
+    # Use description_y to match with decisions table description
     mask = (
         (alignments_df['ymd'] == ymd) &
-        (alignments_df['description_x'] == description) &
+        (alignments_df['description_y'] == description) &
         (alignments_df['stablespeaker'] == speaker)
     )
     rows = alignments_df[mask]
@@ -66,9 +68,10 @@ def get_alignment(ymd: str, description: str, speaker: str, alignments_df: pd.Da
 
 def get_influence(ymd: str, description: str, speaker: str, influence_df: pd.DataFrame) -> Optional[Dict]:
     """Get Claude's influence assessment for a speaker-decision pair."""
+    # Use description_y to match with decisions table description
     mask = (
         (influence_df['ymd'] == ymd) &
-        (influence_df['description_x'] == description) &
+        (influence_df['description_y'] == description) &
         (influence_df['stablespeaker'] == speaker)
     )
     rows = influence_df[mask]
