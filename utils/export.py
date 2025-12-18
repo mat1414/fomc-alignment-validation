@@ -2,11 +2,28 @@
 Export utilities for FOMC Alignment & Influence Validation Tool.
 """
 import json
+import numpy as np
 import pandas as pd
 from datetime import datetime
 from typing import Dict, List, Tuple, Optional
 
 from config import TARGET_MEETINGS
+
+
+class NumpyEncoder(json.JSONEncoder):
+    """Custom JSON encoder that handles numpy types."""
+    def default(self, obj):
+        if isinstance(obj, (np.integer, np.int64, np.int32)):
+            return int(obj)
+        elif isinstance(obj, (np.floating, np.float64, np.float32)):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, np.bool_):
+            return bool(obj)
+        elif pd.isna(obj):
+            return None
+        return super().default(obj)
 
 
 def generate_results_json(
@@ -50,7 +67,7 @@ def generate_results_json(
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     filename = f"alignment_influence_{ymd}_{coder_id}_{timestamp}.json"
 
-    return json.dumps(output, indent=2, ensure_ascii=False), filename
+    return json.dumps(output, indent=2, ensure_ascii=False, cls=NumpyEncoder), filename
 
 
 def generate_results_csv(
