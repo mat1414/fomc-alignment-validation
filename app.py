@@ -72,6 +72,9 @@ def init_session_state():
     if 'speakers_cache' not in st.session_state:
         st.session_state.speakers_cache = {}
 
+    if 'jump_to_incomplete' not in st.session_state:
+        st.session_state.jump_to_incomplete = False
+
 
 def reset_coding_state():
     """Reset coding state when meeting changes."""
@@ -143,6 +146,33 @@ def count_total_completed() -> int:
     return sum(1 for v in st.session_state.validations.values() if v.get('completed', False))
 
 
+def find_first_incomplete(decisions: pd.DataFrame, data: Dict) -> Tuple[int, int]:
+    """Find the first incomplete speaker-decision pair.
+
+    Returns:
+        Tuple of (decision_idx, speaker_idx) for first incomplete pair,
+        or (0, 0) if all complete or no data.
+    """
+    ymd = st.session_state.selected_meeting
+
+    for dec_idx, row in decisions.iterrows():
+        speakers = get_decision_speakers(ymd, row['description'], data['alignments'])
+        for sp_idx, speaker in enumerate(speakers):
+            key = get_validation_key(dec_idx, speaker)
+            if key not in st.session_state.validations:
+                return (dec_idx, sp_idx)
+            if not st.session_state.validations[key].get('completed', False):
+                return (dec_idx, sp_idx)
+
+    # All complete, return last position
+    if len(decisions) > 0:
+        last_dec = len(decisions) - 1
+        last_speakers = get_decision_speakers(ymd, decisions.iloc[last_dec]['description'], data['alignments'])
+        return (last_dec, len(last_speakers) - 1 if last_speakers else 0)
+
+    return (0, 0)
+
+
 def get_decisions_list(data: Dict) -> pd.DataFrame:
     """Get cached decisions list for current meeting."""
     if st.session_state.decisions_cache is None:
@@ -199,6 +229,8 @@ def render_sidebar(data: Dict):
                     st.session_state.validations = restored_data['validations']
                     st.session_state.decisions_cache = None
                     st.session_state.speakers_cache = {}
+                    # Mark that we need to jump to first incomplete after data loads
+                    st.session_state.jump_to_incomplete = True
                     st.success(message)
                     st.rerun()
                 else:
@@ -246,6 +278,14 @@ def render_sidebar(data: Dict):
 
             if total_pairs > 0:
                 st.progress(completed_pairs / total_pairs)
+
+            # Jump to next incomplete button
+            if completed_pairs < total_pairs:
+                if st.button("🎯 Jump to Next Incomplete", use_container_width=True):
+                    dec_idx, sp_idx = find_first_incomplete(decisions, data)
+                    st.session_state.current_decision_idx = dec_idx
+                    st.session_state.current_speaker_idx = sp_idx
+                    st.rerun()
 
             current_dec = st.session_state.current_decision_idx
             st.write(f"**Current decision:** {current_dec + 1} of {len(decisions)}")
@@ -679,6 +719,17 @@ def main():
     if len(decisions) == 0:
         st.error("No decisions found for this meeting.")
         st.stop()
+
+    # Handle automatic jump to first incomplete after restore
+    if st.session_state.jump_to_incomplete:
+        st.session_state.jump_to_incomplete = False
+        dec_idx, sp_idx = find_first_incomplete(decisions, data)
+        st.session_state.current_decision_idx = dec_idx
+        st.session_state.current_speaker_idx = sp_idx
+        completed = count_total_completed()
+        total = get_meeting_stats(ymd, data)['num_pairs']
+        st.toast(f"Restored! {completed}/{total} pairs completed. Jumping to next incomplete.", icon="📂")
+        st.rerun()
 
     decision_idx = st.session_state.current_decision_idx
     decision_row = decisions.iloc[decision_idx]
