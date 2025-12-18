@@ -443,8 +443,7 @@ def render_assessment_form(
     influence_data: Dict,
     speakers: List[str],
     decisions: pd.DataFrame,
-    data: Dict,
-    ymd: str
+    data: Dict
 ):
     """Render the alignment and influence assessment form."""
     validation = get_or_create_validation(
@@ -583,9 +582,6 @@ def render_assessment_form(
             label_visibility="collapsed"
         )
         inf['human_score'] = human_inf_score
-
-    # Transcript section (placed here for easy reference while assessing)
-    render_transcript_section(ymd, speaker, data)
 
     # Notes and confidence (full width)
     st.markdown("---")
@@ -765,11 +761,14 @@ def main():
     # Speaker navigation
     current_speaker = render_speaker_navigation(speakers, decision_idx)
 
+    # Transcript section at the top for easy reference
+    render_transcript_section(ymd, current_speaker, data)
+
     # Get alignment and influence data
     alignment_data = get_alignment(ymd, decision['description'], current_speaker, data['alignments'])
     influence_data = get_influence(ymd, decision['description'], current_speaker, data['influence'])
 
-    # Assessment form (includes transcript section)
+    # Assessment form
     render_assessment_form(
         current_speaker,
         decision,
@@ -778,8 +777,7 @@ def main():
         influence_data,
         speakers,
         decisions,
-        data,
-        ymd
+        data
     )
 
 
